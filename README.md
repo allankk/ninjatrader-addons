@@ -20,6 +20,12 @@ A measured move tool with extendable anchor points.
 
 ![NT-MeasuredMove](assets/NT-MeasuredMove.png)
 
+### Better Arrows
+
+A Better Arrow (Up and Down) tool with context menu to change between common colors.
+
+![NT-BetterArrows](assets/NT-BetterArrows.png)
+
 ## Indicators
 
 ### BarSizeCounter
