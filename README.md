@@ -34,7 +34,7 @@ Displays the current bar size in points & ticks next to the bar. Text distance, 
 
 ![NT-BarSizeCounter](assets/NT-BarSizeCounter.png)
 
-## Repeater (By NinjaTrader_Paul)
+### Repeater (By NinjaTrader_Paul)
 
 Allows to repeatedly set Highlight regions, i.e. to better identify premarket hours. 
 
