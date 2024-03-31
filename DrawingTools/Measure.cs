@@ -24,7 +24,7 @@ using NinjaTrader.Core.FloatingPoint;
 //This namespace holds Drawing tools in this folder and is required. Do not change it. 
 namespace NinjaTrader.NinjaScript.DrawingTools
 {
-	public class Measure2 : DrawingTool
+	public class Measure : DrawingTool
 	{
 		private const int 						cursorSensitivity 			= 15;
 		private	ChartAnchor						editingAnchor;
@@ -514,7 +514,7 @@ namespace NinjaTrader.NinjaScript.DrawingTools
 			if (State == State.SetDefaults)
 			{
 				Description				= @"Modified ruler tool to display values dynamically";
-				Name					= "Measure2";
+				Name					= "Measure";
 				//Name					= Custom.Resource.NinjaScriptDrawingToolRuler;
 				DrawingState			= DrawingState.Building;
 				StartAnchor				= new ChartAnchor { IsEditing = true, DrawingTool = this };

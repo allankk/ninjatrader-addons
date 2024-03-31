@@ -1,22 +1,40 @@
 # Ninjatrader Custom Indicators and Tools
 
+## Drawing Tools
+
+### Measure
+
+A quick measure tool to display information similar to the measuring tool in TradingView.
+
+![NT-Measure](assets/NT-Measure.png)
+
+### Better Channel
+
+A better channel tool with a mid-line anchor and context menu to change between commonly used colors.
+
+![NT-BetterChannel](assets/NT-BetterChannel.png)
+
+### Measured Move
+
+A measured move tool with extendable anchor points.
+
+![NT-MeasuredMove](assets/NT-MeasuredMove.png)
+
 ## Indicators
 
 ### BarSizeCounter
 
 Displays the current bar size in points & ticks next to the bar. Text distance, font and background are adjustible.
 
-![NT-BarSizeCounter](Indicators/BarSizeCounter/NT-BarSizeCounter.png)
+![NT-BarSizeCounter](assets/NT-BarSizeCounter.png)
 
-## Drawing Tools
+## Repeater (By NinjaTrader_Paul)
 
-### Measure2
+Allows to repeatedly set Highlight regions, i.e. to better identify premarket hours. 
 
-A quick measure tool to display information similar to the measuring tool in TradingView.
-
-![NT-Measure2](DrawingTools/Measure2/NT-Measure2.png)
+![NT-Repeater](assets/NT-Repeater.png)
 
 ## Installation
 
-1. Import the chosen .zip file in the repo in NT: `Tools > Import > NinjaScript Add-On`
+1. Import the .zip file in the repo in NT: `Tools > Import > NinjaScript Add-On`
 2. For Drawing Tools adjust the hotkey in `Tools > Hotkeys > Chart`, for indicators add them on the chart `Right Click > Indicators`.
