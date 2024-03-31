@@ -262,8 +262,8 @@ namespace NinjaTrader.NinjaScript.DrawingTools
 
         private void MyMenuItem1_Click(object sender, RoutedEventArgs e)
         {
-			AreaBrush = Brushes.SeaGreen;
-            OutlineBrush = Brushes.SeaGreen;
+			AreaBrush = Brushes.Green;
+            OutlineBrush = Brushes.Green;
         }
         private void MyMenuItem2_Click(object sender, RoutedEventArgs e)
         {
@@ -282,8 +282,8 @@ namespace NinjaTrader.NinjaScript.DrawingTools
         }
         private void MyMenuItem5_Click(object sender, RoutedEventArgs e)
         {
-			AreaBrush = Brushes.Violet;
-            OutlineBrush = Brushes.Violet;
+			AreaBrush = Brushes.Orchid;
+            OutlineBrush = Brushes.Orchid;
         }
 
         private void AddMenuHandlers(ChartControl chartControl)
@@ -354,8 +354,9 @@ namespace NinjaTrader.NinjaScript.DrawingTools
 			RenderTarget.Transform		= transformMatrix;
 			
             float barWidth = 6f;
-			float arrowHeight		= barWidth * 5f;
-			float arrowPointHeight	= barWidth + 2f;
+			//float arrowHeight		= barWidth * 4f;
+			float arrowHeight		= barWidth + 20f;
+			float arrowPointHeight	= barWidth + 1f;
 			float arrowStemWidth	= 1f;
 
 			SharpDX.Direct2D1.PathGeometry arrowPathGeometry = new SharpDX.Direct2D1.PathGeometry(Core.Globals.D2DFactory);
