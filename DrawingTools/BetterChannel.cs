@@ -112,6 +112,9 @@ namespace NinjaTrader.NinjaScript.DrawingTools
 		[Display(Order = 25), ExcludeFromTemplate]
 		public ChartAnchor ParallelMidAnchor { get; set; }
 
+		[Display(Order = 30), ExcludeFromTemplate]
+		public double ParallelDistance { get; set; }
+
 		[Display(ResourceType = typeof(Custom.Resource), Name = "NinjaScriptDrawingToolTrendChannelParallelStroke", GroupName = "NinjaScriptLines", Order = 2)]
 		public Stroke ParallelStroke { get; set; }
 
@@ -156,6 +159,7 @@ namespace NinjaTrader.NinjaScript.DrawingTools
 					AreaBrush						= Brushes.CornflowerBlue;
 					AreaOpacity						= 4;
 					PriceLevelOpacity				= 5;
+					ParallelDistance				= 4;
 					//IgnoresSnapping					= true;
 					break;
 				case State.Configure:
@@ -453,22 +457,89 @@ namespace NinjaTrader.NinjaScript.DrawingTools
 			return false;
 		}
 
-		private ChartAnchor GetMidPointMove(ChartAnchor staticAnchor, ChartAnchor initialAnchor, ChartAnchor initialMidAnchor, ChartAnchor movedAnchor, ChartControl chartControl, ChartPanel chartPanel, ChartScale chartScale)
+		// Get new midpoint anchor after moving start or endpoint 
+		private ChartAnchor GetMidPointMove(ChartControl chartControl, ChartPanel chartPanel, ChartScale chartScale)
 		{
-			Point   staticPoint  	= staticAnchor.GetPoint(chartControl, chartPanel, chartScale);
-			Point   initPoint  		= initialAnchor.GetPoint(chartControl, chartPanel, chartScale);
-			Point   initMidParal  	= initialMidAnchor.GetPoint(chartControl, chartPanel, chartScale);
-			Point   movedPoint  	= movedAnchor.GetPoint(chartControl, chartPanel, chartScale);
+			Point startPoint	= TrendStartAnchor.GetPoint(chartControl, chartPanel, chartScale);
+			Point endPoint		= TrendEndAnchor.GetPoint(chartControl, chartPanel, chartScale);			
+			Point midPoint 		= new Point((startPoint.X + endPoint.X) / 2, (startPoint.Y + endPoint.Y) / 2);
 
-			Point trendMidPoint 	= new Point((staticPoint.X + initPoint.X)/2, (staticPoint.Y + initPoint.Y)/2);
-			Point newTrendMidPoint  = new Point((staticPoint.X + movedPoint.X)/2, (staticPoint.Y + movedPoint.Y)/2);
+			double vectorX   = endPoint.X - startPoint.X;
+			double vectorY   = endPoint.Y - startPoint.Y;
+   			double vectorLength = Math.Sqrt(vectorX * vectorX + vectorY * vectorY);
+   			double normalizedVectorX = -vectorY / vectorLength;
+   			double normalizedVectorY = vectorX / vectorLength;
+   			double displacementX = normalizedVectorX * ParallelDistance;
+   			double displacementY = normalizedVectorY * ParallelDistance;
+   			double newMidpointX = midPoint.X + displacementX;
+   			double newMidpointY = midPoint.Y + displacementY;
 
-			Point paralDifference 	= new Point(initMidParal.X + (newTrendMidPoint.X - trendMidPoint.X), initMidParal.Y + (newTrendMidPoint.Y - trendMidPoint.Y));
+			Point newParalPoint = new Point(newMidpointX, newMidpointY);
 
-			ChartAnchor	ret			= new ChartAnchor();
-			ret.UpdateFromPoint(paralDifference, chartControl, chartScale);
-
+			ChartAnchor	ret	= new ChartAnchor();
+			ret.UpdateFromPoint(newParalPoint, chartControl, chartScale);
 			return ret;
+		}
+
+		// Get new midpoint when moving the parallel line
+		public ChartAnchor GetPerpendicularMidPoint(ChartAnchor dataPoint, ChartControl chartControl, ChartPanel chartPanel, ChartScale chartScale)
+		{
+			Point startPoint = TrendStartAnchor.GetPoint(chartControl, chartPanel, chartScale);
+			Point endPoint = TrendEndAnchor.GetPoint(chartControl, chartPanel, chartScale);
+			Point midPoint = new Point((startPoint.X + endPoint.X)/2, (startPoint.Y + endPoint.Y)/2);
+			Point cursorPoint = dataPoint.GetPoint(chartControl, chartPanel, chartScale);
+
+			if (endPoint.Y - startPoint.Y == 0)
+   			{
+   			    // Handle horizontal line separately (perpendicular slope = infinity)
+   			    // The closest point will have the same y-coordinate as the cursor position
+   			    double closestX = midPoint.X; // Midpoint x-coordinate
+   			    double closestY = cursorPoint.Y; // Cursor y-coordinate
+
+				Point moveToPoint = new Point(closestX, closestY);
+				ChartAnchor	ret			= new ChartAnchor();
+				ret.UpdateFromPoint(moveToPoint, chartControl, chartScale);
+
+   			    return ret;
+   			} else 
+			{
+				double slope = (endPoint.Y - startPoint.Y) / (endPoint.X - startPoint.X);
+				double perpSlope = -1 / slope;
+
+	   			// Calculate y-intercept of the perpendicular line
+	   			double b = midPoint.Y - perpSlope * midPoint.X;
+
+	   			// Calculate x-coordinate of the closest point
+				//double closestX = (perpSlope * cursorPoint.Y + cursorPoint.X - perpSlope * b) / (perpSlope * perpSlope + 1);
+				double closestX = (perpSlope * cursorPoint.Y + cursorPoint.X - perpSlope * b) / (perpSlope * perpSlope + 1);
+
+	   			// Calculate y-coordinate of the closest point
+	   			double closestY = perpSlope * closestX + b;
+
+   			    //double closestY = cursorPoint.Y; // Cursor y-coordinate
+
+				Point moveToPoint = new Point(closestX, closestY);
+
+				ChartAnchor	ret			= new ChartAnchor();
+				ret.UpdateFromPoint(moveToPoint, chartControl, chartScale);
+
+				return ret;
+			}
+		}
+
+		public void CalculateNewDistance(ChartControl chartControl, ChartPanel chartPanel, ChartScale chartScale)
+		{
+			Point paralMidPoint = ParallelMidAnchor.GetPoint(chartControl, chartPanel, chartScale);
+			Point startPoint = TrendStartAnchor.GetPoint(chartControl, chartPanel, chartScale);
+			Point endPoint = TrendEndAnchor.GetPoint(chartControl, chartPanel, chartScale);
+
+			double dx = endPoint.X - startPoint.X;
+			double dy = endPoint.Y - startPoint.Y;
+
+			double normalLength = Math.Sqrt(dx * dx + dy * dy);
+			double distance = (dx * (paralMidPoint.Y - startPoint.Y) - dy * (paralMidPoint.X - startPoint.X)) / normalLength;
+
+			ParallelDistance = distance;
 		}
 
 		public override void OnCalculateMinMax()
@@ -507,7 +578,6 @@ namespace NinjaTrader.NinjaScript.DrawingTools
 					else if (TrendEndAnchor.IsEditing)
 					{
 						Anchor45(InitialMouseDownAnchor, dataPoint, chartControl, chartPanel, chartScale).CopyDataValues(TrendEndAnchor);
-						//dataPoint.CopyDataValues(TrendEndAnchor);
 						TrendEndAnchor.IsEditing = false;
 					}
 
@@ -557,64 +627,38 @@ namespace NinjaTrader.NinjaScript.DrawingTools
 			{
 				if (TrendEndAnchor.IsEditing)
 					Anchor45(InitialMouseDownAnchor, dataPoint, chartControl, chartPanel, chartScale).CopyDataValues(TrendEndAnchor);
-					//dataPoint.CopyDataValues(TrendEndAnchor);
 				else if (isReadyForMovingSecondLeg)
 				{
-					ParallelMidAnchor.MoveAnchor(InitialMouseDownAnchor, dataPoint, chartControl, chartPanel, chartScale, this);
+					ChartAnchor moveToAnc = GetPerpendicularMidPoint(dataPoint, chartControl, chartPanel, chartScale);
+					ParallelMidAnchor.MoveAnchor(InitialMouseDownAnchor, moveToAnc, chartControl, chartPanel, chartScale, this);
+
+					CalculateNewDistance(chartControl, chartPanel, chartScale);
 				}
 			}
 			else if (DrawingState == DrawingState.Editing)
 			{
 				if (!TrendStartAnchor.IsEditing && !ParallelMidAnchor.IsEditing && TrendEndAnchor.IsEditing)
 				{
-					TrendEndAnchor.MoveAnchor(InitialMouseDownAnchor, dataPoint, chartControl, chartPanel, chartScale, this);
+					Anchor45(TrendStartAnchor, dataPoint, chartControl, chartPanel, chartScale).CopyDataValues(TrendEndAnchor);
 
-					// Move the parallel mid anchor
-					//Point	initPoint		= InitialMouseDownAnchor.GetPoint(chartControl, chartPanel, chartScale);
-					//Point	moveToPoint		= dataPoint.GetPoint(chartControl, chartPanel, chartScale);
-					//Point   startPoint  	= TrendStartAnchor.GetPoint(chartControl, chartPanel, chartScale);
-					//Point 	paralPoint		= ParallelMidAnchor.GetPoint(chartControl, chartPanel, chartScale); 
-
-					//Point trendMidPoint 	= new Point((startPoint.X + initPoint.X)/2, (startPoint.Y + initPoint.Y)/2);
-					//Point newTrendMidPoint  = new Point((startPoint.X + moveToPoint.X)/2, (startPoint.Y + moveToPoint.Y)/2);
-
-					//Point paralDifference 	= new Point(paralPoint.X + (newTrendMidPoint.X - trendMidPoint.X), paralPoint.Y + (newTrendMidPoint.Y - trendMidPoint.Y));
-
-					//ChartAnchor	ret			= new ChartAnchor();
-					//ret.UpdateFromPoint(paralDifference, chartControl, chartScale);
-
-					ChartAnchor ret = GetMidPointMove(TrendStartAnchor, InitialMouseDownAnchor, ParallelMidAnchor, dataPoint, chartControl, chartPanel, chartScale);
-					ParallelMidAnchor.MoveAnchor(ParallelMidAnchor, ret, chartControl, chartPanel, chartScale, this);
+					ChartAnchor	ret	= GetMidPointMove(chartControl, chartPanel, chartScale);
+					ret.CopyDataValues(ParallelMidAnchor);
 				}
 
 				if (!TrendEndAnchor.IsEditing && !ParallelMidAnchor.IsEditing && TrendStartAnchor.IsEditing)
 				{
 					TrendStartAnchor.MoveAnchor(InitialMouseDownAnchor, dataPoint, chartControl, chartPanel, chartScale, this);
 
-					// Move the parallel mid anchor
-					//Point	initPoint		= InitialMouseDownAnchor.GetPoint(chartControl, chartPanel, chartScale);
-					//Point	moveToPoint		= dataPoint.GetPoint(chartControl, chartPanel, chartScale);
-					//Point   startPoint  	= TrendEndAnchor.GetPoint(chartControl, chartPanel, chartScale);
-					//Point 	paralPoint		= ParallelMidAnchor.GetPoint(chartControl, chartPanel, chartScale); 
-
-					//Point trendMidPoint 	= new Point((startPoint.X + initPoint.X)/2, (startPoint.Y + initPoint.Y)/2);
-					//Point newTrendMidPoint  = new Point((startPoint.X + moveToPoint.X)/2, (startPoint.Y + moveToPoint.Y)/2);
-
-					//Point paralDifference 	= new Point(paralPoint.X + (newTrendMidPoint.X - trendMidPoint.X), paralPoint.Y + (newTrendMidPoint.Y - trendMidPoint.Y));
-
-					//ChartAnchor	ret			= new ChartAnchor();
-					//ret.UpdateFromPoint(paralDifference, chartControl, chartScale);
-
-					ChartAnchor ret = GetMidPointMove(TrendEndAnchor, InitialMouseDownAnchor, ParallelMidAnchor, dataPoint, chartControl, chartPanel, chartScale);
-
-					ParallelMidAnchor.MoveAnchor(ParallelMidAnchor, ret, chartControl, chartPanel, chartScale, this);
+					ChartAnchor	ret	= GetMidPointMove(chartControl, chartPanel, chartScale);
+					ret.CopyDataValues(ParallelMidAnchor);
 				}
-
-
 
 				if (!TrendStartAnchor.IsEditing && !TrendEndAnchor.IsEditing && ParallelMidAnchor.IsEditing)
 				{
-					ParallelMidAnchor.MoveAnchor(InitialMouseDownAnchor, dataPoint, chartControl, chartPanel, chartScale, this);
+					ChartAnchor moveToAnc = GetPerpendicularMidPoint(dataPoint, chartControl, chartPanel, chartScale);
+					moveToAnc.CopyDataValues(ParallelMidAnchor);
+
+					CalculateNewDistance(chartControl, chartPanel, chartScale);
 				}
 
 				if (!TrendStartAnchor.IsEditing && !ParallelMidAnchor.IsEditing && !TrendEndAnchor.IsEditing)
