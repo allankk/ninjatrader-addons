@@ -40,6 +40,14 @@ Allows to repeatedly set Highlight regions, i.e. to better identify premarket ho
 
 ![NT-Repeater](assets/NT-Repeater.png)
 
+## BarTypes
+
+### Trend Reversal
+
+Modified Renko bars (candle opens at the same price as previous candle close).
+
+![NT-TrendRev](assets/NT-TrendRev.png)
+
 ## Installation
 
 1. Import the .zip file in the repo in NT: `Tools > Import > NinjaScript Add-On`

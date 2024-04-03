@@ -539,6 +539,7 @@ namespace NinjaTrader.NinjaScript.DrawingTools
 			double normalLength = Math.Sqrt(dx * dx + dy * dy);
 			double distance = (dx * (paralMidPoint.Y - startPoint.Y) - dy * (paralMidPoint.X - startPoint.X)) / normalLength;
 
+
 			ParallelDistance = distance;
 		}
 
@@ -1217,13 +1218,13 @@ namespace NinjaTrader.NinjaScript.DrawingTools
 			{
 				if (chartControl.BarSpacingType != BarSpacingType.TimeBased)
 				{
-					ParallelMidAnchor.SlotIndex = TrendEndAnchor.SlotIndex;
+					ParallelMidAnchor.SlotIndex = (TrendEndAnchor.SlotIndex + TrendStartAnchor.SlotIndex) / 2;
 					ParallelMidAnchor.Time = chartControl.GetTimeBySlotIndex(ParallelMidAnchor.SlotIndex);
 				}
 				else
 					ParallelMidAnchor.Time = TrendEndAnchor.Time;
 
-				ParallelMidAnchor.Price		= TrendEndAnchor.Price;
+				ParallelMidAnchor.Price		= (TrendEndAnchor.Price + TrendStartAnchor.Price) / 2;
 				ParallelMidAnchor.StartAnchor = InitialMouseDownAnchor;
 			}
 			else 
